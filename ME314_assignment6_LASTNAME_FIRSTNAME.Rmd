@@ -1,11 +1,11 @@
 ---
-title: "Exercise 7 - Nonlinear Models and Tree-based Methods"
+title: "Exercise 6 - Nonlinear Models and Tree-based Methods"
 author: "Ken Benoit, Slava Mikhaylov, and Jack Blumenau"
 output: html_document
 ---
 
 
-### Exercise 7.1
+### Exercise 6.1
 
 This question relates to the `College` dataset from the `ISLR` package.
 
@@ -14,7 +14,7 @@ This question relates to the `College` dataset from the `ISLR` package.
 (c) Evaluate the model obtained on the test set, and explain the results obtained.
 (d) For which variables, if any, is there evidence of a non-linear relationship with the response?
 
-### Exercise 7.2 
+### Exercise 6.2 
 
 Apply bagging and random forests to a data set of your choice. Be sure to fit the models on a training set and to evaluate their performance on a test set. How accurate are the results compared to simple methods like linear or logistic regression? Which of these approaches yields the best performance?
 
