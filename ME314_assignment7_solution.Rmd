@@ -1,6 +1,6 @@
 ---
 title: "Exercise 7 - Resampling Methods and Model Selection"
-author: "Ken Benoit, Slava Mikhaylov, and Jack Blumenau"
+author: "Ken Benoit and Jack Blumenau"
 output: html_document
 ---
 
@@ -40,51 +40,58 @@ glm.fit <-  glm(Direction ~ Lag1 + Lag2,
 summary(glm.fit)
 ```
 
- (c) Use the model from (b) to predict the direction of the first observation. You can do this by predicting that the first observation will go up if `P(Direction="Up"|Lag1, Lag2) > 0.5`. Was this observation correctly classified?
+ (c) Use the model from (b) to predict the direction of the first observation. You can do this by predicting that the first observation will go up if `P(Direction="Up"|Lag1, Lag2) > 0.5`. Remember that to calculate predicted probabilities (rather than predicted log-odds) you will need to add `type = "response"` as an argument to the `predict()` function. Compare your prediction to the true value of `Direction` for the first observation. Was this observation correctly classified?
 
 ```{r}
-predict.glm(glm.fit, Weekly[1,], type="response") > 0.5
+predict(glm.fit, Weekly[1,], type="response") > 0.5
+Weekly[1,]$Direction
 ```
 
 **Prediction was UP, true Direction was DOWN.**
 
- (d) Write a `for` loop from i=1 to i=n, where n is the number of observations in the data set, that performs each of the following steps:
+(d) Write a `for` loop from i=1 to i=n, where n is the number of observations in the data set, that performs each of the following steps:
 
     i. Fit a logistic regression model using all but the i-th observation to predict `Direction` using `Lag1` and `Lag2`.
-    
-    ii. Compute the posterior probability of the market moving up for the i-th observation. 
-    
-    iii. Use the posterior probability for the i-th observation in order to predict whether or not the market moves up. 
-    
+    ii. Calculate the probability of the market moving up for the i-th observation (this requires using the same code as you used for your answer to part (c) above.). 
+    iii. Use the probability for the i-th observation in order to predict whether or not the market moves up. 
     iv. Determine whether or not an error was made in predicting the direction for the i-th observation. If an error was made, then indicate this as a 1, and otherwise indicate it as a 0.
 
 ```{r}
 
-count <-rep(0, nrow(Weekly))
+# Set up a vector in which you can store the errors for each observation
+errors <- rep(0, nrow(Weekly))
 
+# Loop over each observation in the data
 for (i in 1:nrow(Weekly)) {
+  
+  # Fit the logistic regression model
    glm.fit <-  glm(Direction ~ Lag1 + Lag2, 
                    data = Weekly[-i,], 
                    family = binomial)
    
-   is_up <-  predict.glm(glm.fit, Weekly[i,], type="response") > 0.5
+   # Calculate the predicted probability, and check whether this is greater than .5
+   is_up <-  predict(glm.fit, Weekly[i,], type="response") > 0.5
+   
+   # Calculate the true outcome for the i-th observation
    is_true_up <-  Weekly[i,]$Direction == "Up"
-   if (is_up != is_true_up)
-     count[i] <-  1
+   
+   # Assign the errors vector to be equal to 1 if a prediction error was made (the vector is all 0s otherwise)
+   if (is_up != is_true_up) errors[i] <-  1
 }
 
-sum(count)
+# Count up the number of errors made
+sum(errors)
 ```
 
-**490 errors.**
+**There are 490 errors.**
 
  (e) Take the average of the n numbers obtained in (d)iv in order to obtain the LOOCV estimate for the test error. Comment on the results.
 
 ```{r}
-mean(count)
+mean(errors)
 ```
 
-**LOOCV estimates a test error rate of 45%.** 
+**The LOOCV estimates a test error rate of 45%. This is pretty high!** 
 
 ## Exercise 7.2
 
@@ -105,19 +112,17 @@ College.train <-  College[train, ]
 College.test <-  College[test, ]
 ```
 
-(b) Fit a linear model using least squares on the training set, and
-report the test error obtained.
+(b) Fit a linear model with `Apps` as the outcome, and all other variables in the data as predictors. Use least squares to estimate the model on the training set, and then report the test error obtained.
 
-**Number of applications is the Apps variable.**
 ```{r}
 lm.fit <-  lm(Apps ~ . , data = College.train)
 lm.pred <-  predict(lm.fit, College.test)
 mean((College.test[, "Apps"] - lm.pred)^2)
 ```
 
-**Test RSS is 1538442**
+**The test-set MSE is 1538442**
 
-(c) Fit a ridge regression model on the training set, with $\lambda$ chosen by cross-validation. Report the test error obtained.
+(c) Using the same outcome and the same predictors, fit a ridge regression model on the training set, with $\lambda$ chosen by cross-validation. Report the test error obtained.
 
 **Pick $\lambda$ using College.train and report error on College.test**
 
@@ -134,7 +139,7 @@ ridge.pred <-  predict(mod.ridge, newx = test.mat, s = lambda.best)
 mean((College.test[, "Apps"] - ridge.pred)^2)
 ```
 
-**Test RSS is slightly higher than OLS, 1608859.**
+**Test MSE is slightly higher than OLS, 1608859.**
 
 (d) Fit a lasso model on the training set, with $\lambda$ chosen by cross-validation. Report the test error obtained, along with the number of non-zero coefficient estimates.
 
@@ -147,7 +152,7 @@ lambda.best
 lasso.pred <-  predict(mod.lasso, newx = test.mat, s = lambda.best)
 mean((College.test[, "Apps"] - lasso.pred)^2)
 ```
-**Again, Test RSS is slightly higher than OLS, 1635280.**
+**Again, Test MSE is slightly higher than OLS, 1635280.**
 
 **The coefficients look like**
 ```{r}
@@ -156,6 +161,7 @@ mod.lasso <-  glmnet(model.matrix(Apps ~ . , data = College),
 predict(mod.lasso, s = lambda.best, type = "coefficients")
 ```
 
+<!---
 
 (e) Fit a PCR model on the training set, with $M$ chosen by cross-validation. Report the test error obtained, along with the value of $M$ selected by cross-validation.
 
@@ -171,6 +177,7 @@ mean((College.test[, "Apps"]- pcr.pred)^2)
 
 **Test RSS for PCR is about 3014496.**
 
+--->
 
 (f) Comment on the results obtained. How accurately can we predict the number of college applications received? Is there much difference among the test errors resulting from these five approaches?
 
@@ -188,30 +195,36 @@ ridge.test.r2 <-  1 - mean((College.test[, "Apps"] - ridge.pred)^2)/
 lasso.test.r2 <-  1 - mean((College.test[, "Apps"] - lasso.pred)^2) /
   mean((College.test[, "Apps"] - test.avg)^2)
 
-pcr.test.r2 <-  1 - mean((College.test[, "Apps"] - pcr.pred)^2) /
-  mean((College.test[, "Apps"] - test.avg)^2)
-
-barplot(c(lm.test.r2, ridge.test.r2, lasso.test.r2, pcr.test.r2),
-        col = "red", names.arg = c("OLS", "Ridge", "Lasso", "PCR"),
+barplot(c(lm.test.r2, ridge.test.r2, lasso.test.r2),
+        col = "red", names.arg = c("OLS", "Ridge", "Lasso"),
         main = "Test R-squared")
 ```
 
-**The plot shows that test $R^2$ for all models except PCR are around 0.9. PCR has a smaller test $R^2$ of less than 0.8. All models except PCR predict college applications with high accuracy.** 
+**The plot shows that test $R^2$ for all models are around 0.9. All models predict college applications with high accuracy.** 
 
 
 ## Exercise 7.3 (Optional)
 
 We will now try to predict per capita crime rate in the `Boston` data set.
 
-(a) Try out some of the regression methods explored in this chapter, such as best subset selection, the lasso, ridge regression, and PCR. Present and discuss results for the approaches that you consider.
+(a) Try out some of the regression methods explored in this chapter such as the lasso, and ridge regression. Present and discuss results for the approaches that you consider.
 
 ```{r}
 set.seed(1)
 library(MASS)
 library(leaps)
 library(glmnet)
+library(boot)
 ```
 
+
+**Linear regression**
+```{r}
+glm_fit <- glm(crim ~ ., data = Boston)
+cv.linear <-  cv.glm(Boston, glm_fit)
+mse_linear <- cv.linear$delta[1]
+mse_linear
+```
 
 **Lasso**
 ```{r}
@@ -219,8 +232,10 @@ x <-  model.matrix(crim ~ . -1, data = Boston)
 y <-  Boston$crim
 cv.lasso <-  cv.glmnet(x, y, type.measure = "mse")
 plot(cv.lasso)
-coef(cv.lasso)
-sqrt(cv.lasso$cvm[cv.lasso$lambda == cv.lasso$lambda.1se])
+mse_lasso <- cv.lasso$cvm[cv.lasso$lambda == cv.lasso$lambda.1se]
+mse_lasso
+
+
 ```
 
 **Ridge regression**
@@ -229,19 +244,26 @@ x <-  model.matrix(crim ~ . -1, data = Boston)
 y <-  Boston$crim
 cv.ridge <-  cv.glmnet(x, y, type.measure = "mse", alpha = 0)
 plot(cv.ridge)
-coef(cv.ridge)
-sqrt(cv.ridge$cvm[cv.ridge$lambda == cv.ridge$lambda.1se])
+mse_ridge <- cv.ridge$cvm[cv.ridge$lambda == cv.ridge$lambda.1se]
+mse_ridge
 ```
 
-**PCR**
+**The ridge regression has a lower CV MSE than the lasso regression, but, in this case, the linear regression has the lowest MSE**
+
 ```{r}
-library(pls)
-pcr.fit <-  pcr(crim ~ . , data = Boston, scale = TRUE, validation = "CV")
-summary(pcr.fit)
+
+## Compare the estimated model coefficients
+
+coef_ests <- data.frame(ols = coef(glm_fit),
+           ridge = as.numeric(coef(cv.ridge)),
+           lasso = as.numeric(coef(cv.lasso)))
+
+round(coef_ests, 4)
+
 ```
 
-**13 component PCR fit has lowest CV/adjCV RMSEP.**
 
+<!--- 
 
 (b) Propose a model (or set of models) that seem to perform well on this data set, and justify your answer. Make sure that you are evaluating model performance using validation set error, cross-validation, or some other reasonable alternative, as opposed to using training error.
 
@@ -251,3 +273,4 @@ summary(pcr.fit)
 
 **13 component PCR model seems to work best. But the final choice of the optimal model will depend whether we care about interpretability of the results. That is using components or individual variables as in lasso/ridge.**
 
+---->
