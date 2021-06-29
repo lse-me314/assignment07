@@ -12,9 +12,3 @@ Work with the file [ME314_assignment7_LASTNAME_FIRSTNAME.Rmd](ME314_assignment7_
 
 The TAs will spend a large amount of time on this today in class.
 
-
-### Solution
-
-Solution to Assignment 7 as:
-*  [RMarkdown](ME314_assignment7_solution.Rmd)  
-*  [HTML](ME314_assignment7_solution.html)
