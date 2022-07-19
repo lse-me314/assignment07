@@ -77,7 +77,7 @@ for (i in 1:nrow(Weekly)) {
 
 ## Exercise 7.2 - K-Fold Cross Validation
 
-Running the leave-one-out procedure here does not take too long because the `Weekly` dataset has only `nrow(Weekly)` observations, and this is a simple logistic regression model. However, often LOOCV is too computationally burdensome to be useful. In those cases, K-fold cross-validation is normally used instead. Though it is possible to code cross-validation manually, using only the functions we used above, in this case it will suffice to use some functions designed for the purpose.
+Running the leave-one-out procedure here does not take too long because the `Weekly` dataset has only `r nrow(Weekly)` observations, and this is a simple logistic regression model. However, often LOOCV is too computationally burdensome to be useful. In those cases, K-fold cross-validation is normally used instead. Though it is possible to code cross-validation manually, using only the functions we used above, in this case it will suffice to use some functions designed for the purpose.
 
 (a) First, load the boot library (you may need to `install.packages("boot")` first):
 
