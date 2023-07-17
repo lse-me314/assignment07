@@ -134,14 +134,36 @@ To estimate the ridge regression, you will need to use the `glmnet` function fro
 
 (e) To estimate a lasso regression, you can use exactly the same code as for the ridge regression, only changing the `alpha` parameter to be equal to 1 rather than 0. Try this now, and compare the OLS coefficients to the lasso coefficients when `lambda = 10`.
 
-## Exercise 7.3 - Cross-validation for lasso and ridge regression (hard question)
+## Exercise 7.3 - Out-of-sample error for lasso and ridge regression (hard question)
+
+*For this question, you might find it helpful to refer to pages 274-275 of the James et. al. textbook.*
 
 (a) In this question we will use the validation set approach in order to estimate the test error rate using lasso and ridge regression. First, split the data set into a training set and a validation set. You may find the `sample()` function helpful for selecting observations at random to include in the two sets.
 
 (b) Use least squares to estimate the model on the training set, and then report the test error obtained for the validation set. To calculate the test error, you will need to use the formula $\frac{1}{n}\sum_{i=1}^n (y_i - \hat{y_i})^2$, where $y_i$ is the observed value of the outcome (`Apps`) for observation $i$ and $\hat{y_i}$ is the fitted value for observation $i$ from the regression model.
 
-(c) Using the same outcome and the same predictors, fit a ridge regression model on the training data that you just created. Remember, you will have to convert the training data predictors using the `model.matrix()` function, as in part (c) of the previous question, in order for the `glmnet()` function to work. Use the `predict()` function to calculate fitted values for the test set by setting the `newx` argument to be equal to your test data. Report the test set MSE from this regression. How does it compare to the test set error you calculated in part (b)?
 
-    (For the purposes of this question, set `lambda = 0.1`. Or, if you are feeling adventurous, follow the instructions on pages 253-254 of the James et. al. textbook to see how to use cross-validation for the ridge regression!)
+(c) Using the same outcome and the same predictors, fit a ridge regression model on the training data that you just created. For the purposes of this question, set `lambda = 0.1`. Remember, you will have to convert the training data predictors using the `model.matrix()` function, as in part (c) of the previous question, in order for the `glmnet()` function to work. Use the `predict()` function to calculate fitted values for the test set by setting the `newx` argument to be equal to your test data. Report the test set MSE from this regression. How does it compare to the test set error you calculated in part (b)?
 
-(d) Repeat the process you followed in part (c), but this time using a lasso regression (remember, a lasso is estimated by setting `alpha = 1` in `glmnet()`). Again, set `lambda = 0.1`. Report the test error obtained. How does this compare to the test set errors for the OLS and ridge models? (Again, further details for implementing the lasso model can be found on page 255 of the textbook.)
+
+(d) Repeat the process you followed in part (c), but this time using a lasso regression (remember, a lasso is estimated by setting `alpha = 1` in `glmnet()`). Again, set `lambda = 0.1`. Report the test error obtained. How does this compare to the test set errors for the OLS and ridge models? 
+
+
+(e) Our results so far have relied on the arbitrary choice of $\lambda = 0.1$. Let's try to do a bit better than that. Use 10-fold cross-validation to select the $\lambda$ parameter for both the ridge and lasso models. To do so, you will need to use the `cv.glmnet()` function, which takes the following main arguments:
+
+|Argument|Value|
+|:--------|:----------|
+|`x`|A matrix of predictor variables|
+|`y`|A response variable|
+|`family`|A character string representing the family of the outcome variable. Use `"gaussian"` here for a numeric outcome.|
+|`nfolds`|Number of folds to use in cross validation|
+|`alpha`|Parameter expressing the type of penalised model you would like to fit. `alpha = 1` is the lasso penalty, and `alpha = 0` the ridge penalty.|
+
+Implement the cross-validation using this function.
+
+(f) Calculate fitted values for the test set you created in part a above using the lasso and ridge regressions that you fit in answer to parts c and d above, but this time using the best performing $\lambda$ value from the cross-validation you just conducted in part e. `cv.glmnet()` stores the optimal choice for $\lambda$ in the output of the fitted object. Extract it using `estimated_cv_object$lambda.min` and use as input to the `s` argument of the `predict()` function. (You can also see pages 276-277 of the James et. al. book if you are struggling here.) Report the test error obtained for both models.
+
+
+
+(g) Does this cross-validation exercise help us to predict the outcome relative to the implementations above? 
+
